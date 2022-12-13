@@ -5,6 +5,8 @@ const performance = require('perf_hooks').performance;
 const fs = require('fs');
 const OpenAI = require('./lib/OpenAI');
 const BotHelper = require('./lib/BaileysHelper');
+const dotenv = require('dotenv');
+dotenv.config();
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_whatsapp");
