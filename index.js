@@ -98,6 +98,7 @@ async function connectToWhatsApp() {
             } catch (err) {
                 await BotHelper.sendMessage(sock, remoteJid, 'Error reason :\n\n' + err.message + '\n\nReport bug ↓');
                 await BotHelper.sendAuthorContact(sock, remoteJid);
+                console.log(err);
             }
         }
     });
