@@ -1,11 +1,10 @@
-const { default: makeWASocket, Browsers, DisconnectReason, useMultiFileAuthState, makeInMemoryStore, MessageType } = require('@adiwajshing/baileys');
+const { default: makeWASocket, Browsers, DisconnectReason, useMultiFileAuthState, MessageType } = require('@adiwajshing/baileys');
 const { Boom } = require('@hapi/boom');
 const pino = require('pino');
-const performance = require('perf_hooks').performance;
 const fs = require('fs');
-const OpenAI = require('./lib/OpenAI');
-const BotHelper = require('./lib/BaileysHelper');
+const outComeMessageHelper = require('./lib/BaileysHelper/outcomeMessage');
 const dotenv = require('dotenv');
+const incomeMessageHandler = require('./lib/BaileysHelper/incomeMessage');
 dotenv.config();
 
 async function connectToWhatsApp() {
@@ -51,57 +50,63 @@ async function connectToWhatsApp() {
     sock.ev.on('creds.update', saveCreds);
 
     sock.ev.on("messages.upsert", async ({ messages }) => {
-        const fromMe = messages[0].key.fromMe;
         const remoteJid = messages[0].key.remoteJid;
-        const messageBody = messages[0].message?.conversation;
         const quoted = messages[0];
         let text;
         let imageUrl;
-        if (!fromMe) {
-            try {
-                switch (messageBody.split(' ')[0].toLowerCase()) {
-                    case 'image':
-                    case 'gambar':
-                        text = 'Processing...'
-                        const startImage = performance.now();
-                        await BotHelper.replyMessage(sock, remoteJid, text, quoted)
-                        imageUrl = await OpenAI.generateImage(messageBody);
-                        const endImage = performance.now();
-                        let executingImageTime = endImage - startImage;
-                        executingImageTime = executingImageTime / 1000;
-                        await BotHelper.sendImage(sock, remoteJid, imageUrl, `*Execution time: ${executingImageTime.toFixed(2)} s*`, { quoted })
+        try {
+            const messageType = Object.keys(messages[0].message)[0];
+            if (!messages[0].key.fromMe) {
+                switch (messageType) {
+                    case 'conversation':
+                        let isGroup = false;
+                        messages[0].key.participant == undefined ? isGroup = false : isGroup = true;
+                        const incomeText = messages[0].message?.conversation;
+                        await incomeMessageHandler.conversationHandle(sock, remoteJid, incomeText, quoted, isGroup);
                         break;
-                    case 'sticker':
-                    case 'stiker':
-                        await BotHelper.replyMessage(sock, remoteJid, 'Feature soon!', quoted);
+                    case 'imageMessage':
+                        const imageMessage = messages[0].message;
+                        const caption = messages[0].message?.imageMessage?.caption;
+                        await incomeMessageHandler.imageMessageHandle(sock, remoteJid, imageMessage, caption, quoted);
                         break;
-                    case 'help':
-                    case 'tolong':
-                        if (messageBody.split(' ')[1] == undefined) {
-                            text = 'Hi there...\n\n'
-                                + 'Open AI Features\n'
-                                + '1. send any text //ChatBot OpenAI\n'
-                                + '2. *image* your text //to generate image\n'
-                                + '3. *sticker* or *stiker* //image to sticker\n\n'
-                                + 'more? as soon as possible\n\n'
-                                + 'Request feature or report bug ↓'
-                            
-                            await BotHelper.replyMessage(sock, remoteJid, text, quoted);
-                            await BotHelper.sendAuthorContact(sock, remoteJid);
+                    case 'stickerMessage':
+                        
+                        break;
+                    case 'extendedTextMessage':
+                        const textMessage = messages[0].message?.extendedTextMessage?.text;
+                        const extendedMessage = messages[0].message?.extendedTextMessage?.contextInfo?.quotedMessage;
+                        if (extendedMessage) {
+                            const extendedMessageType = Object.keys(extendedMessage)[0];
+                            switch (extendedMessageType) {
+                                case 'conversation':
+                                    let isGroup = false;
+                                    messages[0].key.participant == undefined ? isGroup = false : isGroup = true;
+                                    const incomeText = textMessage.toLowerCase() + '\n\n' + extendedMessage.conversation.replace('*ChatBot OpenAI*', '').trim();
+                                    await incomeMessageHandler.conversationHandle(sock, remoteJid, incomeText, quoted, isGroup); 
+                                    break;
+                                case 'imageMessage':
+                                    await incomeMessageHandler.imageMessageHandle(sock, remoteJid, extendedMessage, textMessage, quoted );
+                                    break;
+                                case 'stickerMessage':
+        
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                         break;
                     default:
-                        text = await OpenAI.freeText(messageBody);
-                        await BotHelper.replyMessage(sock, remoteJid, text, quoted);
                         break;
                 }
-            } catch (err) {
-                await BotHelper.sendMessage(sock, remoteJid, 'Error reason :\n\n' + err.message + '\n\nReport bug ↓');
-                await BotHelper.sendAuthorContact(sock, remoteJid);
-                console.log(err);
             }
+        } catch (err) {
+            const errorMessage = `Error reason : \n\n${err.message}\n\nReport bug ↓`
+            await outComeMessageHelper.replyMessage(sock, remoteJid, errorMessage, quoted)
+            await outComeMessageHelper.sendAuthorContact(sock, remoteJid);
         }
     });
 }
 
-connectToWhatsApp();
+const app = connectToWhatsApp();
+
+module.exports = app;
