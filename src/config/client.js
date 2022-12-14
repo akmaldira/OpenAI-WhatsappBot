@@ -3,13 +3,11 @@ global.conn;
 
 
 async function connectToWhatsApp(auth_whatsapp, gclient, gconn) {
-    const { default: makeWAclientet, Browsers, DisconnectReason, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState } = require('../../Baileys/lib');
-    const { Boom } = require('@hapi/boom');
+    const { default: makeWAclientet, Browsers, makeInMemoryStore, DisconnectReason, makeCacheableSignalKeyStore, useMultiFileAuthState } = require('@adiwajshing/baileys');
     const pino = require('pino');
     const qrcode = require('qrcode-terminal');
-
     
-    const { state, saveCreds } = await useMultiFileAuthState(auth_whatsapp);
+    const { state, saveCreds } = await useMultiFileAuthState('auth_whatsapp');
 
     const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
 
@@ -17,12 +15,8 @@ async function connectToWhatsApp(auth_whatsapp, gclient, gconn) {
         logger: pino({ level: 'silent', stream: 'store' }),
         printQRInTerminal: true,
         browser: Browsers.macOS("Desktop"),
-        auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, pino().child({ level: 'silent', stream: 'store' }))
-        }
+        auth: state
     });
-
     const { ev: conn, ws } = client;
 
     store.bind(conn);

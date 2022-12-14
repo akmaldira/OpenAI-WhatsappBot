@@ -15,11 +15,15 @@ async function connectionUpdate() {
     });
 }
 
-
-
-connectToWhatsApp('auth_whatsapp', global.client, global.conn).then(({ client, conn }) => {
+async function start() {
+    const {client, conn} = await connectToWhatsApp('auth_whatsapp', global.client, global.conn);
     global.client = client;
-    global.conn = conn
-}).then(async() => {
-    await connectionUpdate();
-})
+    global.conn = conn;
+    try {
+        await connectionUpdate();
+    } catch (err) {
+        start();
+    }
+}
+
+start();

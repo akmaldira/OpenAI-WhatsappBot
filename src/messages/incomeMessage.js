@@ -111,7 +111,6 @@ async function incomeMessage(client, messages) {
         if (messageType == 'conversation') {
             const incomeText = messages.message?.conversation;
             const reply = await textHandle(incomeText, isGroup, participants) || { text: undefined };
-            console.log(reply);
             if (reply[Object.keys(reply)[0]] != undefined) {
                 await client.sendMessage(fromId, reply, { quoted })
             }
