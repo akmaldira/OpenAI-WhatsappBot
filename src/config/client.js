@@ -25,7 +25,6 @@ async function connectToWhatsApp(auth_whatsapp, gclient, gconn) {
     gconn = conn
 
     conn.on('connection.update', ({ qr, connection, lastDisconnect, isNewLogin }) => {
-        require('./update');
         if (qr) {
             console.log('Scan QR to login');
         }
@@ -43,10 +42,6 @@ async function connectToWhatsApp(auth_whatsapp, gclient, gconn) {
         if (isNewLogin) {
             console.log('Success connect')
         }
-    });
-
-    conn.on('messages.upsert', m => {
-        require('./update')
     });
 
     ws.on('CB:success', () => {
