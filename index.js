@@ -15,6 +15,8 @@ async function connectionUpdate() {
     });
 }
 
+
+
 connectToWhatsApp('auth_whatsapp', global.client, global.conn).then(({ client, conn }) => {
     global.client = client;
     global.conn = conn
