@@ -16,8 +16,8 @@ const freeText = async (text) => {
         frequency_penalty: 0,
         presence_penalty: 0,
     });
-    const cleanText = response.data.choices[0].text;
-    return '*ChatBot OpenAI*\n' + cleanText;
+    const cleanText = response.data.choices[0].text.trim();
+    return '*ChatBot OpenAI*\n\n' + cleanText;
 }
 
 const generateImage = async (text) => {
