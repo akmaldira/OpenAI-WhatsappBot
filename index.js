@@ -95,33 +95,37 @@ async function connectToWhatsApp(auth_whatsapp) {
                     }
                 }
             } catch (err) {
-                const fromId = messages[0].key?.remoteJid;
-                const quoted = messages[0];
-                const errorMessage = `Error reason : \n\n${err.message}\n\nReport bug ↓`
-                await client.sendMessage(fromId, { text: errorMessage }, { quoted });
-                const vcard = 'BEGIN:VCARD\n'
-                    + 'VERSION:3.0\n'
-                    + 'N:Akmal Dira\n'
-                    + 'FN:Akmal Dira\n'
-                    + 'item1.TEL;waid=6289699060906:+6289699060906\n'
-                    + 'item1.X-ABLabel:Ponsel\n'
-                    + 'item2.EMAIL;type=INTERNET:akmaldiraa@gmail.com\n'
-                    + 'item2.X-ABLabel:Email\n'
-                    + 'item3.URL:https://instagram.com/akmaldira\n'
-                    + 'item3.X-ABLabel:Instagram\n'
-                    + 'item4.URL:https://link.dana.id/qr/ixwle4b\n'
-                    + 'item4.X-ABLabel:Dana (Gime duit)\n'
-                    + 'END:VCARD';
-                const contact = { 
-                    displayName: 'Akmal Dira', 
-                    contacts: [
-                        { 
-                            displayName: 'Akmal Dira', 
-                            vcard
-                        }
-                    ]
+                try {
+                    const fromId = messages[0].key?.remoteJid;
+                    const quoted = messages[0];
+                    const errorMessage = `Error reason : \n\n${err.message}\n\nReport bug ↓`
+                    await client.sendMessage(fromId, { text: errorMessage }, { quoted });
+                    const vcard = 'BEGIN:VCARD\n'
+                        + 'VERSION:3.0\n'
+                        + 'N:Akmal Dira\n'
+                        + 'FN:Akmal Dira\n'
+                        + 'item1.TEL;waid=6289699060906:+6289699060906\n'
+                        + 'item1.X-ABLabel:Ponsel\n'
+                        + 'item2.EMAIL;type=INTERNET:akmaldiraa@gmail.com\n'
+                        + 'item2.X-ABLabel:Email\n'
+                        + 'item3.URL:https://instagram.com/akmaldira\n'
+                        + 'item3.X-ABLabel:Instagram\n'
+                        + 'item4.URL:https://link.dana.id/qr/ixwle4b\n'
+                        + 'item4.X-ABLabel:Dana (Gime duit)\n'
+                        + 'END:VCARD';
+                    const contact = { 
+                        displayName: 'Akmal Dira', 
+                        contacts: [
+                            { 
+                                displayName: 'Akmal Dira', 
+                                vcard
+                            }
+                        ]
+                    }
+                    await client.sendMessage( fromId, {  contacts: contact } );
+                } catch (err) {
+                    
                 }
-                await client.sendMessage( fromId, {  contacts: contact } );
             }
         }
     });
