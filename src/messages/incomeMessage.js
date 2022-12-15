@@ -73,7 +73,6 @@ async function extendedTextHandle(textMessage, extendedMessage, isGroup, partici
                 let replyI = await imageHandle(textMessage, extendedMessage);
                 return replyI;
             case 'extendedTextMessage':
-                console.log(extendedMessage);
                 if (textMessage.includes('tag')) {
                     let incomeText = textMessage.toLowerCase() + '\n\n' + extendedMessage.extendedTextMessage.text.replace('*ChatBot OpenAI*', '').trim();
                     let reply = await textHandle(incomeText, isGroup);
