@@ -2,7 +2,7 @@ const OpenAI = require('../lib/OpenAI');
 const mediaHelper = require('../helper/mediaHelper');
 const performance = require('perf_hooks').performance;
 
-async function textHandle(incomeText, isGroup, participants) {
+exports.textHandle = textHandle = async(incomeText, isGroup, participants) => {
     const command = incomeText.split(' ')[0];
     if (command.toLowerCase() == '!image' || command.toLowerCase() == '!gambar') {
         const startProcess = performance.now();
@@ -43,7 +43,7 @@ async function textHandle(incomeText, isGroup, participants) {
     }
 }
 
-async function imageHandle(textMessage, imageMessage) {
+exports.imageHandle = imageHandle = async(textMessage, imageMessage) => {
     switch (textMessage.toLowerCase()) {
         case '!sticker':
         case '!stiker':
@@ -61,7 +61,7 @@ async function imageHandle(textMessage, imageMessage) {
     }
 }
 
-async function extendedTextHandle(textMessage, extendedMessage, isGroup, participants) {
+exports.extendedTextHandle = extendedTextHandle = async(textMessage, extendedMessage, isGroup, participants) => {
     if (extendedMessage) {
         const extendedMessageType = Object.keys(extendedMessage)[0];
         switch (extendedMessageType) {
@@ -98,65 +98,3 @@ async function extendedTextHandle(textMessage, extendedMessage, isGroup, partici
         return reply;
     }
 }
-
-async function incomeMessage(client, messages) {
-    try {
-        const fromId = messages.key?.remoteJid;
-        const isGroup = fromId.includes('g.us');
-        const groupMetadata = isGroup ? await client.groupMetadata(fromId) : '';
-        const participants = groupMetadata.participants || [];
-        const quoted = messages;
-        const messageType = Object.keys(messages.message)[0];
-        if (messageType == 'conversation') {
-            const incomeText = messages.message?.conversation;
-            const reply = await textHandle(incomeText, isGroup, participants) || { text: undefined };
-            if (reply[Object.keys(reply)[0]] != undefined) {
-                await client.sendMessage(fromId, reply, { quoted })
-            }
-        } else if (messageType == 'extendedTextMessage') {
-            const textMessage = messages.message?.extendedTextMessage?.text;
-            const extendedMessage = messages.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-            const reply = await extendedTextHandle(textMessage, extendedMessage, isGroup, participants) || { text: undefined };
-            if (reply[Object.keys(reply)[0]] != undefined) {
-                await client.sendMessage(fromId, reply, { quoted })
-            }
-        } else if (messageType == 'imageMessage') {
-            const incomeText = messages.message?.imageMessage?.caption;
-            const imageMessage = messages.message;
-            const reply = await imageHandle(incomeText, imageMessage);
-            if (reply[Object.keys(reply)[0]] != undefined) {
-                await client.sendMessage(fromId, reply, { quoted })
-            }
-        }
-    } catch (err) {
-        const fromId = messages.key?.remoteJid;
-        const quoted = messages;
-        const errorMessage = `Error reason : \n\n${err.message}\n\nReport bug ↓`
-        await client.sendMessage(fromId, { text: errorMessage }, { quoted });
-        const vcard = 'BEGIN:VCARD\n'
-            + 'VERSION:3.0\n'
-            + 'N:Akmal Dira\n'
-            + 'FN:Akmal Dira\n'
-            + 'item1.TEL;waid=6289699060906:+6289699060906\n'
-            + 'item1.X-ABLabel:Ponsel\n'
-            + 'item2.EMAIL;type=INTERNET:akmaldiraa@gmail.com\n'
-            + 'item2.X-ABLabel:Email\n'
-            + 'item3.URL:https://instagram.com/akmaldira\n'
-            + 'item3.X-ABLabel:Instagram\n'
-            + 'item4.URL:https://link.dana.id/qr/ixwle4b\n'
-            + 'item4.X-ABLabel:Dana (Gime duit)\n'
-            + 'END:VCARD';
-        const contact = { 
-            displayName: 'Akmal Dira', 
-            contacts: [
-                { 
-                    displayName: 'Akmal Dira', 
-                    vcard
-                }
-            ]
-        }
-        await client.sendMessage( fromId, {  contacts: contact } );
-    }
-}
-
-module.exports = incomeMessage;

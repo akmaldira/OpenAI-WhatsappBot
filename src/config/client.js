@@ -11,11 +11,28 @@ async function connectToWhatsApp(auth_whatsapp, gclient, gconn) {
 
     const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
 
+    store?.readFromFile('./baileys_store_multi.json')
+    setInterval(() => {
+        store?.writeToFile('./baileys_store_multi.json')
+    }, 10_000)
+
+    const logger = pino().child({ level: 'silent', stream: 'store' });
     const client = makeWAclientet({
         logger: pino({ level: 'silent', stream: 'store' }),
         printQRInTerminal: true,
         browser: Browsers.macOS("Desktop"),
-        auth: state
+        auth: state,
+        getMessage: async key => {
+			if(store) {
+				const msg = await store.loadMessage(key.remoteJid, key.id);
+				return msg?.message || undefined
+			}
+
+			// only if store is present
+			return {
+				conversation: 'hello'
+			}
+		}
     });
     const { ev: conn, ws } = client;
 
