@@ -89,12 +89,13 @@ async function connectToWhatsApp(auth_whatsapp) {
                 } else if (messageType == 'imageMessage') {
                     const incomeText = messages[0].message?.imageMessage?.caption;
                     const imageMessage = messages[0].message;
-                    const reply = await incomeMessage.imageHandle(incomeText, imageMessage);
+                    const reply = await incomeMessage.imageHandle(incomeText, imageMessage) || { text: undefined };
                     if (reply[Object.keys(reply)[0]] != undefined) {
                         await client.sendMessage(fromId, reply, { quoted })
                     }
                 }
             } catch (err) {
+                console.log(err);
                 try {
                     const fromId = messages[0].key?.remoteJid;
                     const quoted = messages[0];
